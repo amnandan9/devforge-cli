@@ -7,7 +7,7 @@ from rich.table import Table
 from rich.panel import Panel
 from rich import print as rprint
 
-BASE_URL = "http://127.0.0.1:8000"  # Update this to production URL later
+DEFAULT_BASE_URL = "http://127.0.0.1:8000"
 CONFIG_FILE = os.path.expanduser("~/.devforge_cli_config.json")
 
 console = Console()
@@ -22,6 +22,10 @@ def load_config():
             return json.load(f)
     return {}
 
+def get_base_url():
+    c = load_config()
+    return c.get('base_url', DEFAULT_BASE_URL)
+
 def get_headers():
     config = load_config()
     token = config.get('token')
@@ -35,17 +39,31 @@ def cli():
     """DevForge CLI - Manage your projects and tickets from the terminal."""
     pass
 
+@cli.group()
+def config():
+    """Configure CLI settings."""
+    pass
+
+@config.command()
+@click.argument('url')
+def set_url(url):
+    """Set the DevForge base URL."""
+    c = load_config()
+    c['base_url'] = url.rstrip('/')
+    save_config(c)
+    rprint(f"[bold green]Base URL set to:[/bold green] {c['base_url']}")
+
 @cli.command()
 @click.option('--username', prompt=True)
 @click.option('--password', prompt=True, hide_input=True)
 def login(username, password):
     """Authenticate with DevForge."""
-    url = f"{BASE_URL}/api-token-auth/"
+    url = f"{get_base_url()}/api-token-auth/"
     try:
         response = requests.post(url, data={'username': username, 'password': password})
         if response.status_code == 200:
             token = response.json().get('token')
-            save_config({'token': token, 'username': username})
+            save_config({**load_config(), 'token': token, 'username': username})
             rprint(f"[bold green]Success![/bold green] Logged in as {username}.")
         else:
             rprint("[bold red]Login failed.[/bold red] Check your credentials.")
@@ -70,7 +88,7 @@ def tickets():
 @tickets.command(name='list')
 def list_tickets():
     """List all open tickets."""
-    url = f"{BASE_URL}/review/api/tickets/"
+    url = f"{get_base_url()}/review/api/tickets/"
     try:
         response = requests.get(url, headers=get_headers())
         if response.status_code == 200:
@@ -100,7 +118,7 @@ def list_tickets():
 @click.argument('ticket_id')
 def view(ticket_id):
     """View ticket details."""
-    url = f"{BASE_URL}/review/api/tickets/{ticket_id}/"
+    url = f"{get_base_url()}/review/api/tickets/{ticket_id}/"
     try:
         response = requests.get(url, headers=get_headers())
         if response.status_code == 200:
@@ -130,7 +148,7 @@ def view(ticket_id):
 @click.option('--code', prompt=True, help="Enter code content (one file)")
 def create(title, language, ticket_type, priority, code):
     """Create a new ticket."""
-    url = f"{BASE_URL}/review/api/tickets/"
+    url = f"{get_base_url()}/review/api/tickets/"
     data = {
         'title': title,
         'language': language,
