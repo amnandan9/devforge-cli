@@ -2,4 +2,5 @@
 pip install -r requirements.txt
 pip install pyinstaller
 pyinstaller --onefile cli.py --name devforge
-Write-Host "Build complete. The executable is in the 'dist' folder."
+pyinstaller --onefile --windowed launcher.py --name DevForge_Launcher
+Write-Host "Build complete. Executables are in the 'dist' folder."
