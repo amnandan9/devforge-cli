@@ -75,9 +75,9 @@ def list_tickets():
         response = requests.get(url, headers=get_headers())
         if response.status_code == 200:
             tickets_data = response.json()
-            table = Table(title="DevForge Tickets")
-            table.add_column("ID", style="dim")
-            table.add_column("Title", style="cyan")
+            table = Table(title="DevForge Tickets", style="magenta")
+            table.add_column("ID", style="dim magenta")
+            table.add_column("Title", style="white bold")
             table.add_column("Type", style="magenta")
             table.add_column("Priority", style="yellow")
             table.add_column("Status", style="green")
@@ -106,17 +106,17 @@ def view(ticket_id):
         if response.status_code == 200:
             t = response.json()
             panel_content = f"""
-[bold cyan]Title:[/bold cyan] {t['title']}
+[bold magenta]Title:[/bold magenta] {t['title']}
 [bold magenta]Type:[/bold magenta] {t['ticket_type']}
 [bold yellow]Priority:[/bold yellow] {t['priority']}
 [bold green]Status:[/bold green] {t['status']}
-[bold blue]Submitter:[/bold blue] {t['submitter']['username']}
+[bold white]Submitter:[/bold white] {t['submitter']['username']}
 [bold white]Language:[/bold white] {t['language']}
 
-[bold]Code:[/bold]
+[bold white]Code:[/bold white]
 {t['code']}
 """
-            console.print(Panel(panel_content, title=f"Ticket #{ticket_id}"))
+            console.print(Panel(panel_content, title=f"Ticket #{ticket_id}", border_style="magenta"))
         else:
             rprint("[bold red]Ticket not found.[/bold red]")
     except Exception as e:
