@@ -47,9 +47,9 @@ def run_launcher():
         ("👤 User Profile", "whoami"),
         ("💎 Reputation", "reputation"),
         ("🎫 List Tickets", "tickets list"),
+        ("💬 Send Message", "send-message"),
         ("🔑 Login System", "login"),
         ("🚀 My Projects", "projects"),
-        ("📦 Code Snippets", "snippets"),
     ]
 
     for text, cmd in commands:

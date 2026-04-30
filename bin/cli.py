@@ -34,6 +34,12 @@ def get_headers():
         exit(1)
     return {'Authorization': f'Token {token}'}
 
+def print_branded_header(title):
+    console.print(Panel(f"[bold magenta]DEVFORGE[/bold magenta] | {title}", style="magenta", border_style="magenta", box=click.style("rounded", fg="magenta")))
+
+def print_footer():
+    console.print(f"\n[dim magenta]DevForge CLI System v1.1.0[/dim magenta] | [bold cyan]{get_base_url()}[/bold cyan]\n")
+
 @click.group()
 def cli():
     """DevForge CLI - Manage your projects and tickets from the terminal."""
@@ -52,12 +58,6 @@ def set_url(url):
     c['base_url'] = url.rstrip('/')
     save_config(c)
     rprint(f"[bold green]Base URL set to:[/bold green] {c['base_url']}")
-
-def print_branded_header(title):
-    console.print(Panel(f"[bold magenta]DEVFORGE[/bold magenta] | {title}", style="magenta", border_style="magenta", box=click.style("rounded", fg="magenta")))
-
-def print_footer():
-    console.print(f"\n[dim magenta]DevForge CLI System v1.0.0[/dim magenta] | [bold cyan]{get_base_url()}[/bold cyan]\n")
 
 @cli.command()
 @click.option('--username', prompt=True)
@@ -90,6 +90,14 @@ def whoami():
         rprint("Not logged in.")
     print_footer()
 
+@cli.command()
+def reputation():
+    """View your reputation points."""
+    print_branded_header("Reputation System")
+    # This would call an API, for now mock
+    rprint("Current Reputation: [bold yellow]1250[/bold yellow]")
+    print_footer()
+
 @cli.group()
 def tickets():
     """Manage tickets (submissions)."""
@@ -112,13 +120,7 @@ def list_tickets():
             table.add_column("Status", style="green")
             
             for t in tickets_data:
-                table.add_row(
-                    str(t['id']), 
-                    t['title'], 
-                    t['ticket_type'], 
-                    t['priority'], 
-                    t['status']
-                )
+                table.add_row(str(t['id']), t['title'], t['ticket_type'], t['priority'], t['status'])
             console.print(table)
         else:
             rprint("[bold red]Failed to fetch tickets.[/bold red]")
@@ -156,45 +158,58 @@ def view(ticket_id):
 
 @cli.command()
 @click.argument('filepath')
-@click.option('--title', help="Snippet title (defaults to filename)")
-@click.option('--language', help="Snippet language (defaults to file extension)")
-def push_snippet(filepath, title, language):
+@click.option('--title', help="Snippet title")
+def push_snippet(filepath, title):
     """Push a local file as a snippet to DevForge."""
     if not os.path.exists(filepath):
-        rprint(f"[bold red]Error:[/bold red] File not found: {filepath}")
+        rprint(f"[bold red]Error:[/bold red] File not found.")
         return
-
-    print_branded_header("Snippet Upload System")
-    
+    print_branded_header("Snippet Upload")
     with open(filepath, 'r') as f:
         code = f.read()
-
-    filename = os.path.basename(filepath)
-    snippet_title = title or filename
-    snippet_lang = language or filename.split('.')[-1] if '.' in filename else 'text'
-
-    url = f"{get_base_url()}/review/api/tickets/" # Using the same submission endpoint or dedicated snippet endpoint
-    # Actually, let's assume we use the tickets/submissions endpoint for now as a 'task' or similar
-    # Or if there is a snippet API, use that.
-    
+    url = f"{get_base_url()}/review/api/tickets/"
     data = {
-        'title': snippet_title,
-        'language': snippet_lang,
+        'title': title or os.path.basename(filepath),
+        'language': filepath.split('.')[-1] if '.' in filepath else 'text',
         'code': code,
         'ticket_type': 'task',
         'status': 'open',
         'priority': 'medium'
     }
-
     try:
         response = requests.post(url, json=data, headers=get_headers())
         if response.status_code == 201:
-            rprint(f"[bold green]Success![/bold green] Snippet '{snippet_title}' pushed to DevForge.")
-            rprint(f"ID: [bold cyan]{response.json()['id']}[/bold cyan]")
+            rprint("[bold green]Success![/bold green] Snippet pushed.")
         else:
-            rprint(f"[bold red]Failed to push snippet:[/bold red] {response.text}")
+            rprint(f"[bold red]Failed:[/bold red] {response.text}")
     except Exception as e:
         rprint(f"[bold red]Error:[/bold red] {str(e)}")
+    print_footer()
+
+@cli.command()
+@click.argument('username')
+@click.option('--body', prompt="Message")
+def send_message(username, body):
+    """Send a private message."""
+    print_branded_header(f"Direct Message: @{username}")
+    url = f"{get_base_url()}/messages/api/send/{username}/"
+    try:
+        response = requests.post(url, json={'body': body}, headers=get_headers())
+        if response.status_code == 200:
+            rprint("[bold green]Message sent successfully.[/bold green]")
+        else:
+            rprint(f"[bold red]Failed:[/bold red] {response.text}")
+    except Exception as e:
+        rprint(f"[bold red]Error:[/bold red] {str(e)}")
+    print_footer()
+
+@cli.command()
+def projects():
+    """List your projects."""
+    print_branded_header("Project Board")
+    # Mock
+    rprint("1. [bold cyan]DevForge Platform[/bold cyan] - Active")
+    rprint("2. [bold cyan]ResumeForge AI[/bold cyan] - Completed")
     print_footer()
 
 if __name__ == '__main__':

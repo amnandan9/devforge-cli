@@ -1,25 +1,20 @@
-# DevForge CLI Installer
-$InstallDir = "C:\DevForgeCLI"
-$ExeSource = "dist\devforge.exe"
-
-# Create Install Directory
+# DevForge Bash Installer
+$InstallDir = "C:\Program Files\DevForgeBash"
 if (!(Test-Path $InstallDir)) {
-    New-Item -ItemType Directory -Path $InstallDir
+    New-Item -ItemType Directory -Path $InstallDir -Force
 }
 
-# Copy Executables
-Copy-Item -Path "dist\devforge.exe" -Destination "$InstallDir\devforge.exe" -Force
-Copy-Item -Path "dist\DevForge_Launcher.exe" -Destination "$InstallDir\DevForge_Launcher.exe" -Force
+# Copy all files from dist to InstallDir
+Copy-Item -Path "dist\*" -Destination $InstallDir -Recurse -Force
 
-# Create Desktop Shortcut for Launcher
+# Create Desktop Shortcut for git-bash.exe
 $WshShell = New-Object -ComObject WScript.Shell
-$Shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\DevForge Launcher.lnk")
-$Shortcut.TargetPath = "$InstallDir\DevForge_Launcher.exe"
-$Shortcut.IconLocation = "$InstallDir\DevForge_Launcher.exe,0"
-$Shortcut.Description = "DevForge CLI - Quick Launcher"
+$Shortcut = $WshShell.CreateShortcut("$env:USERPROFILE\Desktop\DevForge Bash.lnk")
+$Shortcut.TargetPath = "$InstallDir\git-bash.exe"
+$Shortcut.IconLocation = "$InstallDir\git-bash.exe,0"
+$Shortcut.Description = "DevForge Bash - Terminal Shell"
 $Shortcut.Save()
 
-Write-Host "DevForge CLI installed successfully!"
-Write-Host "Executable copied to: $InstallDir"
+Write-Host "DevForge Bash installed successfully!"
+Write-Host "Location: $InstallDir"
 Write-Host "Shortcut created on Desktop."
-Write-Host "You can now open DevForge CLI from your Desktop."
