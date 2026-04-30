@@ -53,32 +53,42 @@ def set_url(url):
     save_config(c)
     rprint(f"[bold green]Base URL set to:[/bold green] {c['base_url']}")
 
+def print_branded_header(title):
+    console.print(Panel(f"[bold magenta]DEVFORGE[/bold magenta] | {title}", style="magenta", border_style="magenta", box=click.style("rounded", fg="magenta")))
+
+def print_footer():
+    console.print(f"\n[dim magenta]DevForge CLI System v1.0.0[/dim magenta] | [bold cyan]{get_base_url()}[/bold cyan]\n")
+
 @cli.command()
 @click.option('--username', prompt=True)
 @click.option('--password', prompt=True, hide_input=True)
 def login(username, password):
     """Authenticate with DevForge."""
+    print_branded_header("Authentication System")
     url = f"{get_base_url()}/api-token-auth/"
     try:
         response = requests.post(url, data={'username': username, 'password': password})
         if response.status_code == 200:
             token = response.json().get('token')
             save_config({**load_config(), 'token': token, 'username': username})
-            rprint(f"[bold green]Success![/bold green] Logged in as {username}.")
+            rprint(f"[bold green]Success![/bold green] Welcome back, {username}.")
         else:
             rprint("[bold red]Login failed.[/bold red] Check your credentials.")
     except Exception as e:
         rprint(f"[bold red]Error:[/bold red] {str(e)}")
+    print_footer()
 
 @cli.command()
 def whoami():
     """Show current logged in user."""
+    print_branded_header("User Profile")
     config = load_config()
     username = config.get('username')
     if username:
         rprint(f"Logged in as [bold cyan]{username}[/bold cyan]")
     else:
         rprint("Not logged in.")
+    print_footer()
 
 @cli.group()
 def tickets():
@@ -88,6 +98,7 @@ def tickets():
 @tickets.command(name='list')
 def list_tickets():
     """List all open tickets."""
+    print_branded_header("Tickets Repository")
     url = f"{get_base_url()}/review/api/tickets/"
     try:
         response = requests.get(url, headers=get_headers())
@@ -113,11 +124,13 @@ def list_tickets():
             rprint("[bold red]Failed to fetch tickets.[/bold red]")
     except Exception as e:
         rprint(f"[bold red]Error:[/bold red] {str(e)}")
+    print_footer()
 
 @tickets.command()
 @click.argument('ticket_id')
 def view(ticket_id):
     """View ticket details."""
+    print_branded_header(f"Ticket Detail View")
     url = f"{get_base_url()}/review/api/tickets/{ticket_id}/"
     try:
         response = requests.get(url, headers=get_headers())
@@ -139,6 +152,7 @@ def view(ticket_id):
             rprint("[bold red]Ticket not found.[/bold red]")
     except Exception as e:
         rprint(f"[bold red]Error:[/bold red] {str(e)}")
+    print_footer()
 
 @tickets.command()
 @click.option('--title', prompt=True)
